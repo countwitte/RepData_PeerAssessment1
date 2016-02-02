@@ -1,15 +1,11 @@
----
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
----
+# Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 
 First we need to unzip the data file, then we read in it using the read.csv function. Lastly, we convert the date field to a date object to make manipulating the data easier.
-```{r echo=TRUE}
+
+```r
 # unzip the data file
 unzip("./activity.zip")
 
@@ -24,26 +20,32 @@ activitydata["datetime"] <- as.Date(activitydata$date, format="%Y-%m-%d")
 ## What is mean total number of steps taken per day?
 
 To do this we need to calculate the steps frequency per day. First, We will ignore the missing values.
-```{r echo=TRUE}
+
+```r
 # subset the data without the missing values
 activitydataNonMiss <- subset(activitydata, activitydata$steps != "NA")
 ```
 
 Then we calculate the daily totals
-```{r echo=TRUE}
+
+```r
 # calculate daily totals
 dailyTotals <- aggregate(activitydataNonMiss$steps,by=list(activitydataNonMiss$datetime),FUN=sum)
 ```
 
 Here is a histogram of the daily number of steps
-```{r echo=TRUE}
+
+```r
 # daily steps histogram
 hist(dailyTotals$x, xlab = "Daily Steps",
      main = "Total number of steps taken each day", breaks = 11, col = "red")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-4-1.png)
+
 Then we calculate the mean and median from the daily totals
-```{r echo=TRUE}
+
+```r
 # calculate the mean per day
 meanDay <- mean(dailyTotals$x)
 
@@ -57,19 +59,24 @@ The median total number of steps per day = 10765
 ## What is the average daily activity pattern?
 
 This time we need to compute the average per interval across all days.
-```{r echo=TRUE}
+
+```r
 # calculate interval averages
 intervalAvg <- aggregate(activitydataNonMiss$steps,by=list(activitydataNonMiss$interval),FUN=mean)
 ```
 
 Here is a time series plot of the interval averages
-```{r echo=TRUE}
+
+```r
 # Time series plot
 plot(x = intervalAvg$Group.1, y = intervalAvg$x,type = "l",main = "Average steps per 5-min interval across all days", xlab = "5-min interval", ylab = "Average No. Steps")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-7-1.png)
+
 Compute the max average No. steps per interval 
-```{r echo=TRUE}
+
+```r
 # interval steps max 
 intervalAvg <- intervalAvg[order(intervalAvg$x,decreasing = TRUE),]
 maxInterval <- subset(intervalAvg[1,])
@@ -80,7 +87,8 @@ The interval which has the highest number of steps on average = 835 (206.17 Step
 ## Imputing missing values
 
 First, compute the total number of rows containing NAs
-```{r echo=TRUE}
+
+```r
 # Number of rows with missing data 
 narows <- sum(is.na(activitydata$steps))
 ```
@@ -88,7 +96,8 @@ narows <- sum(is.na(activitydata$steps))
 The number of rows with missing data = 2304
 
 We are going to replace the missing data with the average for that interval from all the other days
-```{r echo=TRUE}
+
+```r
 # create a copy of the data
 imputedactivitydata <- activitydata
 
@@ -101,7 +110,8 @@ for (i in 1:nrow(imputedactivitydata)) {
 ```
 
 Here is a histogram of the imputed data for comparison with our earlier plot.
-```{r echo=TRUE}
+
+```r
 # calculate daily totals
 dailyTotals2 <- aggregate(imputedactivitydata$steps,by=list(imputedactivitydata$datetime),FUN=sum)
 
@@ -110,8 +120,11 @@ hist(dailyTotals2$x, xlab = "Daily Steps",
      main = "Total number of steps taken each day (Imputed Data)", breaks = 11, col = "red")
 ```
 
+![](PA1_template_files/figure-html/unnamed-chunk-11-1.png)
+
 We can compare the mean and median values to our earlier results
-```{r echo=TRUE}
+
+```r
 # calculate the mean per day
 meanDay2 <- mean(dailyTotals2$x)
 
@@ -132,7 +145,8 @@ So the imputing average values to replace missing data has slightly reduced the 
 ## Are there differences in activity patterns between weekdays and weekends?
 
 create a 2-level factor variable to distinguish weekday and weekend activity.
-```{r echo=TRUE}
+
+```r
 # add extra columns
 imputedactivitydata["weekday"] <- weekdays(imputedactivitydata$datetime)
 imputedactivitydata["weekdays"] <- weekdays(imputedactivitydata$datetime)
@@ -153,7 +167,8 @@ imputedactivitydata$weekdays <- NULL
 ```
 
 Here is a pair of time-series plots to compare activity by interval over weekdays and weekends.
-```{r echo=TRUE}
+
+```r
 # calculate interval averages for weekdays and weekends
 intervalAvgWkday <- aggregate(imputedactivitydata$steps[imputedactivitydata$weekday == "weekday" ],by=list(imputedactivitydata$interval[imputedactivitydata$weekday == "weekday"]),FUN=mean)
 
@@ -168,5 +183,7 @@ plot(x = intervalAvgWkday$Group.1, y = intervalAvgWkday$x,type = "l",main = "Ave
 # Time series plot weekend
 plot(x = intervalAvgWkend$Group.1, y = intervalAvgWkend$x,type = "l",main = "Average steps per 5-min interval across weekends", xlab = "5-min interval", ylab = "Average No. Steps", ylim = c(0,200))
 ```
+
+![](PA1_template_files/figure-html/unnamed-chunk-14-1.png)
 
 From the two plots we can see that on average there is more activity earlier in the mornings during weekdays, however overall there is more acitvity throughout the day at weekends. This would fit with our expectations as weekday mornings often involve commuting activity. Also at weekends people usually have more leisure time and have the potential to be more active. 
